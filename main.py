@@ -6,33 +6,42 @@ from datetime import datetime
 import re
 
 # URLs
-weather_url = "https://weather.com/weather/tenday/l/73feeffd5125f00310f1c1e3bc62cd01b936918f7d57b8df0efb48fe558e7b75"
 golf_base_url = "https://www.golfnow.com/tee-times/search#qc=GeoLocation&q={}&sortby=Facilities.Distance.0&view=Course&date={}&holes={}&radius={}&timemax={}&timemin={}&players={}&pricemax=10000&pricemin=0&promotedcampaignsonly=false&hotdealsonly=false&longitude=-74.8223&latitude=39.8637"
 
 
-def main(min_temp, max_temp, conditions_blacklist):
+def main(zip_code, min_temp, max_temp, conditions_blacklist,):
     # Call weather API
-     daily_weather_info = get_weather_info()
-     print(daily_weather_info)
-
-     valid_days = []
-     for day in daily_weather_info:
-          if valid_day(min_temp, max_temp, conditions_blacklist, day, daily_weather_info):
-               valid_days.append(day)
-     print('-----------')
-     print(valid_days)
-     
-
-
-   
+    daily_weather_info = get_weather_info(zip_code)
     
-def valid_day(min_temp, max_temp, conditions_blacklist, day,  daily_weather_info):
+
+    valid_days = []
+    for day in daily_weather_info:
+        day_result = valid_day(min_temp, max_temp, conditions_blacklist, day, daily_weather_info)
+        if day_result:
+            valid_days.append(day_result)
+
+    print(valid_days)
+
+
+
+    
+def valid_day(min_temp, max_temp, conditions_blacklist, day, daily_weather_info):
     day_info = daily_weather_info.get(day, {})  # Get the info for the specified day or an empty dictionary if not found
 
-    if day_info and day_info['min'] >= min_temp and day_info['max'] <= max_temp and not day_info['conditions'].intersection(conditions_blacklist):
-        return True
+    conditions = {condition.lower() for condition in day_info.get('conditions', set())}
+    blacklist = {condition.lower() for condition in conditions_blacklist}
+
+
+    if (
+        day_info
+        and day_info['min'] >= min_temp
+        and day_info['max'] <= max_temp
+        and not any(condition in blacklist for condition in conditions)
+    ):
+        return (day, day_info['min'], day_info['max'], day_info['conditions'])
     else:
-        return False
+        return None
+
 
 
 def convert_hole_format(selected_holes):
@@ -153,7 +162,8 @@ def convert_no_days(no_days_to_check):
      match = re.search(r'(\d+)', no_days_to_check)
      return int(match.group(1))
 
-main(0, 99, ['Snow'])
+main('08055', 0, 99, ['CloUds', 'SnOW'])
+
 
 
 
