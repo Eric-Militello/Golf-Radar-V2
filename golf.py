@@ -34,4 +34,5 @@ def scrape_tee_times(url):
             # Check if a_tag is not None before accessing its text attribute
             if a_tag:
                 tee_time_info.append(a_tag.text.strip())
+    print(tee_time_info)
     return tee_time_info

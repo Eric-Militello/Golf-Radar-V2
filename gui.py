@@ -21,7 +21,6 @@ class GolfApp:
         self.conditions_blacklist_var = tk.StringVar()
         self.selected_players_var = tk.StringVar()
         self.selected_holes_var = tk.StringVar()
-        self.no_days_to_check_var = tk.StringVar()
 
         #Font Styles used
         label_font = ('Arial', 20, 'bold')
@@ -120,27 +119,6 @@ class GolfApp:
         self.late_time_drop = tk.OptionMenu(self.time_frame, self.late_time_var, *late_time_options)
         self.late_time_drop.grid(column=1, row=2)
 
-        no_days_options = [
-            '1 day',
-            '2 days',
-            '3 days',
-            '4 days',
-            '5 days',
-            '6 days',
-            '7 days',
-            '8 days',
-            '9 days',
-            '10 days',
-            '11 days',
-            '12 days',
-            '13 days',
-            '14 days',
-        ]
-
-        self.no_days_label = tk.Label(self.time_frame, text='# of days to check')
-        self.no_days_label.grid(column=0, row=3, sticky=W)
-        self.no_days_selections = tk.OptionMenu(self.time_frame, self.no_days_to_check_var, *no_days_options)
-        self.no_days_selections.grid(column=1, row=3)
    
         # WeatherSection
         self.weatherFrame = tk.Frame(self.root)
@@ -223,7 +201,6 @@ class GolfApp:
         conditions_blacklist = self.selected_items(self.blacklist_list)
         selected_players = self.selected_items(self.player_group_list)
         selected_holes = self.selected_items(self.hole_group_list)
-        no_days_to_check = self.no_days_to_check_var.get()
 
         # Now, you can use these variables in your backend logic to perform further actions.
         # For now, I'm just printing them as an example.
@@ -236,10 +213,9 @@ class GolfApp:
         print("Conditions Blacklist:", conditions_blacklist)
         print("Selected Players:", selected_players) 
         print("Selected Holes:", selected_holes)
-        print('Days', no_days_to_check)
 
 
-        day_data_list = main(zip_code, range_value, early_time, late_time,min_temp, max_temp, conditions_blacklist, selected_players, selected_holes, no_days_to_check)
+        day_data_list = main(zip_code, range_value, early_time, late_time,min_temp, max_temp, conditions_blacklist, selected_players, selected_holes)
 
         # Create a new window to display the information
        

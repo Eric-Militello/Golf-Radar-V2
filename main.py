@@ -9,18 +9,19 @@ import re
 golf_base_url = "https://www.golfnow.com/tee-times/search#qc=GeoLocation&q={}&sortby=Facilities.Distance.0&view=Course&date={}&holes={}&radius={}&timemax={}&timemin={}&players={}&pricemax=10000&pricemin=0&promotedcampaignsonly=false&hotdealsonly=false&longitude=-74.8223&latitude=39.8637"
 
 
-def main(zip_code, min_temp, max_temp, conditions_blacklist,):
-    # Call weather API
-    daily_weather_info = get_weather_info(zip_code)
-    
-
-    valid_days = []
-    for day in daily_weather_info:
+def main(zip_code, range_value, early_time, late_time,min_temp, max_temp, conditions_blacklist, selected_players, selected_holes):
+     # Call weather API
+     daily_weather_info = get_weather_info(zip_code)
+     valid_days = []
+     for day in daily_weather_info:
         day_result = valid_day(min_temp, max_temp, conditions_blacklist, day, daily_weather_info)
         if day_result:
-            valid_days.append(day_result)
+          valid_days.append(day_result)
+     for day in valid_days:
+          scrape_tee_times(build_search_url(zip_code, convert_day_format(day, '2024'), convert_hole_format(selected_holes), 
+                                            convert_range_format(range_value), convert_late_time_format(late_time), 
+                                            convert_early_time_format(early_time), convert_selected_players(selected_players)))
 
-    print(valid_days)
 
 
 
@@ -31,16 +32,18 @@ def valid_day(min_temp, max_temp, conditions_blacklist, day, daily_weather_info)
     conditions = {condition.lower() for condition in day_info.get('conditions', set())}
     blacklist = {condition.lower() for condition in conditions_blacklist}
 
+    print(f'Day: {day}, Conditions: {conditions}, Blacklist: {blacklist}')
 
     if (
         day_info
-        and day_info['min'] >= min_temp
-        and day_info['max'] <= max_temp
+        and float(day_info['min']) >= float(min_temp)
+        and float(day_info['max']) <= float(max_temp)
         and not any(condition in blacklist for condition in conditions)
     ):
         return (day, day_info['min'], day_info['max'], day_info['conditions'])
     else:
         return None
+
 
 
 
@@ -128,41 +131,37 @@ def convert_selected_players(selected_players):
     else:
          return 4   
 
-def convert_day_format(candidate_day):
+def convert_day_format(candidate_day, year='2024'):
     # Map weekday abbreviations to weekday names
     weekday_mapping = {'Mon': 'Monday', 'Tue': 'Tuesday', 'Wed': 'Wednesday', 'Thu': 'Thursday', 'Fri': 'Friday', 'Sat': 'Saturday', 'Sun': 'Sunday'}
 
-    # Split candidate_day into weekday and day_number
-    split_result = candidate_day.split()
+    # Check if candidate_day is a tuple
+    if isinstance(candidate_day, tuple):
+        # Assuming the string is the first element in the tuple
+        candidate_day = candidate_day[0]
 
+    # Extract date from candidate_day (assuming it's in the format 'YYYY-MM-DD')
+    date_parts = candidate_day.split('-')
+    
     # Check if the split operation was successful
-    if len(split_result) == 2:
-        weekday_abbrev, day_number = split_result
+    if len(date_parts) == 3:
+        year, month, day = date_parts
+        formatted_day = f"{month}+{day}+{year}"
+        return formatted_day
     else:
         # Handle the case when there are not enough values to unpack
         print(f"Invalid format for candidate day: {candidate_day}")
         return None  # or raise an exception, depending on your needs
 
-    # Get the current date
-    current_date = datetime.now()
 
-    # Start a loop to generate the next ten days
-    candidate_date = current_date + timedelta(days=int(day_number) - current_date.day)
-
-    # Assemble the converted date format (MONTH+DAY+YEAR)
-    converted_date = f"{calendar.month_abbr[candidate_date.month]}+{candidate_date.day:02d}+{candidate_date.year}"
-
-    return converted_date
 
 def build_search_url(zip_code, day, selected_holes, range_value, late_time, early_time, selected_players):
       golf_url = golf_base_url.format(zip_code, day, selected_holes, range_value, late_time, early_time, selected_players,)
       return golf_url
 
-def convert_no_days(no_days_to_check):
-     match = re.search(r'(\d+)', no_days_to_check)
-     return int(match.group(1))
 
-main('08055', 0, 99, ['CloUds', 'SnOW'])
+
+
 
 
 
