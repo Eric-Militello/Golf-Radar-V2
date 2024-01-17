@@ -1,4 +1,4 @@
-from weather import scrape_weather
+from location import *
 from datetime import datetime, timedelta, date
 import calendar
 from golf import scrape_tee_times
@@ -10,43 +10,30 @@ weather_url = "https://weather.com/weather/tenday/l/73feeffd5125f00310f1c1e3bc62
 golf_base_url = "https://www.golfnow.com/tee-times/search#qc=GeoLocation&q={}&sortby=Facilities.Distance.0&view=Course&date={}&holes={}&radius={}&timemax={}&timemin={}&players={}&pricemax=10000&pricemin=0&promotedcampaignsonly=false&hotdealsonly=false&longitude=-74.8223&latitude=39.8637"
 
 
-def main(zip_code, range_value, early_time, late_time, min_temp, max_temp, conditions_blacklist, selected_players, selected_holes, no_days_to_check):
-    # Scrape weather information
-    days_to_check = scrape_weather(weather_url, min_temp, max_temp, conditions_blacklist)
-    day_data_list = []  # New list to store day data
+def main(min_temp, max_temp, conditions_blacklist):
+    # Call weather API
+     daily_weather_info = get_weather_info()
+     print(daily_weather_info)
 
-    days_to_check = days_to_check[0:convert_no_days(no_days_to_check)]
+     valid_days = []
+     for day in daily_weather_info:
+          if valid_day(min_temp, max_temp, conditions_blacklist, day, daily_weather_info):
+               valid_days.append(day)
+     print('-----------')
+     print(valid_days)
+     
 
-    for candidate in days_to_check:
-        day = candidate['day']
-        low_temp = candidate['low temperature']
-        high_temp = candidate['high temperature']
-        condition = candidate['condition']
 
-
-
-        # Scrape tee time information for the day
-        search_url = build_search_url(zip_code, convert_day_format(candidate['day']), convert_hole_format(selected_holes),
-                             convert_range_format(range_value),
-                             convert_late_time_format(late_time), convert_early_time_format(early_time),
-                             convert_selected_players(selected_players))
-        
-        tee_time_info = scrape_tee_times(search_url)
-
-        day_data_list.append({
-            'day': day,
-            'low_temp': low_temp,
-            'high_temp' : high_temp,
-            'condition' : condition,
-            'tee_time_info': tee_time_info,
-            'url' : search_url
-        })
-
-       
-
-    return day_data_list
+   
     
-    
+def valid_day(min_temp, max_temp, conditions_blacklist, day,  daily_weather_info):
+    day_info = daily_weather_info.get(day, {})  # Get the info for the specified day or an empty dictionary if not found
+
+    if day_info and day_info['min'] >= min_temp and day_info['max'] <= max_temp and not day_info['conditions'].intersection(conditions_blacklist):
+        return True
+    else:
+        return False
+
 
 def convert_hole_format(selected_holes):
     if selected_holes[0] == '08':
@@ -166,7 +153,7 @@ def convert_no_days(no_days_to_check):
      match = re.search(r'(\d+)', no_days_to_check)
      return int(match.group(1))
 
-
+main(0, 99, ['Snow'])
 
 
 
