@@ -1,26 +1,28 @@
 from location import *
-from datetime import datetime, timedelta, date
-import calendar
+from datetime import datetime
 from golf import scrape_tee_times
 from datetime import datetime
-import re
 
 # URLs
 golf_base_url = "https://www.golfnow.com/tee-times/search#qc=GeoLocation&q={}&sortby=Facilities.Distance.0&view=Course&date={}&holes={}&radius={}&timemax={}&timemin={}&players={}&pricemax=10000&pricemin=0&promotedcampaignsonly=false&hotdealsonly=false&longitude={}&latitude={}"
 
-
+# Called when user submits their inputs,
 def main(zip_code, range_value, early_time, late_time,min_temp, max_temp, conditions_blacklist, selected_players, selected_holes):
-     # Call weather API
-     daily_weather_info, lon, lat = get_weather_info(zip_code)
+     
+     daily_weather_info, lon, lat = get_weather_info(zip_code)  # Call weather API to get weather info for given zip code
+
+     # Create 2 empty lists, 
+     # valid_days store which days fit the weather criteria, 
+     # valid_days_data store the weather data, tee time data, and search url that will be used to scrape for tee time info
      valid_days = []
      valid_days_data = []
+
      for day in daily_weather_info:
-        day_result = valid_day(min_temp, max_temp, conditions_blacklist, day, daily_weather_info)
+        # Check if day fits criteria, 'None' returned if it does not, day i
+        day_result = valid_day(min_temp, max_temp, conditions_blacklist, day, daily_weather_info) 
         if day_result:
           valid_days.append(day_result)
-
-
-     print(valid_days)
+     #print(valid_days)
 
      #day will be a list in format ['date', min, max, {'condition1', 'consdition2', etc.. }]
      for day in valid_days:
@@ -40,28 +42,27 @@ def main(zip_code, range_value, early_time, late_time,min_temp, max_temp, condit
 
      return valid_days_data
 
-    
+# Check if day meets given weather criteria return day info it passes and 'None' if it does not    
 def valid_day(min_temp, max_temp, conditions_blacklist, day, daily_weather_info):
     day_info = daily_weather_info.get(day, {})  # Get the info for the specified day or an empty dictionary if not found
 
+    # change all conditions to lower to avoid any case sensitivity issues
     conditions = {condition.lower() for condition in day_info.get('conditions', set())}
     blacklist = {condition.lower() for condition in conditions_blacklist}
 
-    print(f'Day: {day}, Conditions: {conditions}, Blacklist: {blacklist}')
+    #print(f'Day: {day}, Conditions: {conditions}, Blacklist: {blacklist}')
 
     if (
         day_info
-        and float(day_info['min']) >= float(min_temp)
-        and float(day_info['max']) <= float(max_temp)
-        and not any(condition in blacklist for condition in conditions)
+        and float(day_info['min']) >= float(min_temp) # Check daily min is greater than or equal to min temp passed in
+        and float(day_info['max']) <= float(max_temp) # Check daily max is less than or equal to max temp passed in
+        and not any(condition in blacklist for condition in conditions) # Check that any daily conditions are not in the passed in black list
     ):
         return (day, day_info['min'], day_info['max'], day_info['conditions'])
     else:
         return None
 
-
-
-
+# Convert user input to proper format to build search URL
 def convert_hole_format(selected_holes):
     if selected_holes[0] == '08':
         return 2
@@ -70,10 +71,12 @@ def convert_hole_format(selected_holes):
     else:
          return 3
 
+# Convert user input to proper format to build search URL
 def convert_range_format(range_value):
      x = range_value.replace('m', '')
      return x.replace('i', '')
 
+# Convert user input to proper format to build search URL
 def convert_late_time_format(late_time):
     if  late_time == 'Any':
         return 42
@@ -103,7 +106,8 @@ def convert_late_time_format(late_time):
          return 18
     elif late_time == '8AM':
          return 16
-    
+
+# Convert user input to proper format to build search URL    
 def convert_early_time_format(early_time):
     if early_time == '6PM':
          return 36
@@ -133,7 +137,8 @@ def convert_early_time_format(early_time):
          return 12
     elif early_time == '5AM':
          return 10
-    
+
+# Convert user input to proper format to build search URL    
 def convert_selected_players(selected_players):
     if selected_players[0] == 'Any':
           return 0   
@@ -146,6 +151,7 @@ def convert_selected_players(selected_players):
     else:
          return 4   
 
+# Convert user input to proper format to build search URL
 def convert_day_format(candidate_day, year='2024'):
     # Map weekday abbreviations to weekday names
     weekday_mapping = {'Mon': 'Monday', 'Tue': 'Tuesday', 'Wed': 'Wednesday', 'Thu': 'Thursday', 'Fri': 'Friday', 'Sat': 'Saturday', 'Sun': 'Sunday'}
@@ -168,35 +174,29 @@ def convert_day_format(candidate_day, year='2024'):
         print(f"Invalid format for candidate day: {candidate_day}")
         return None  # or raise an exception, depending on your needs
 
-
-
+# Build URL that matches the inputs passed in
 def build_search_url(zip_code, day, selected_holes, range_value, late_time, early_time, selected_players, lon, lat):
       golf_url = golf_base_url.format(zip_code, day, selected_holes, range_value, late_time, early_time, selected_players, lon, lat)
       print(golf_url)
       return golf_url
-
-
-
-
-def get_day_suffix(day):
-    if 10 <= day % 100 <= 20:
-        suffix = 'th'
-    else:
-        suffix = {1: 'st', 2: 'nd', 3: 'rd'}.get(day % 10, 'th')
-    return suffix
 
 def format_date_for_gui(input_date):
     # Convert input string to datetime object
     date_object = datetime.strptime(input_date, "%Y-%m-%d")
 
     # Get the day with suffix (1st, 2nd, 3rd, etc.)
-    day_with_suffix = f"{date_object.day}{get_day_suffix(date_object.day)}"
+    day_with_suffix = f"{date_object.day}{get_day_suffix_for_gui(date_object.day)}"
 
     # Format the date as 'Mon DDth'
     formatted_date = date_object.strftime("%b ") + day_with_suffix
 
     return formatted_date
 
-
+def get_day_suffix_for_gui(day):
+    if 10 <= day % 100 <= 20:
+        suffix = 'th'
+    else:
+        suffix = {1: 'st', 2: 'nd', 3: 'rd'}.get(day % 10, 'th')
+    return suffix
 
 
