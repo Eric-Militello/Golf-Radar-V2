@@ -13,17 +13,32 @@ def main(zip_code, range_value, early_time, late_time,min_temp, max_temp, condit
      # Call weather API
      daily_weather_info = get_weather_info(zip_code)
      valid_days = []
+     valid_days_data = []
      for day in daily_weather_info:
         day_result = valid_day(min_temp, max_temp, conditions_blacklist, day, daily_weather_info)
         if day_result:
           valid_days.append(day_result)
+
+
+     print(valid_days)
+
+     #day will be a list in format ['date', min, max, {'condition1', 'consdition2', etc.. }]
      for day in valid_days:
-          scrape_tee_times(build_search_url(zip_code, convert_day_format(day, '2024'), convert_hole_format(selected_holes), 
+          search_url = build_search_url(zip_code, convert_day_format(day, '2024'), convert_hole_format(selected_holes), 
                                             convert_range_format(range_value), convert_late_time_format(late_time), 
-                                            convert_early_time_format(early_time), convert_selected_players(selected_players)))
+                                            convert_early_time_format(early_time), convert_selected_players(selected_players))
+          tee_time_info = scrape_tee_times(search_url)
 
+          valid_days_data.append({
+               'day': day[0],
+               'low_temp': day[1],
+               'high_temp' : day[2],
+               'condition' : day[3],
+               'tee_time_info': tee_time_info,
+               'url' : search_url
+        })
 
-
+     return valid_days_data
 
     
 def valid_day(min_temp, max_temp, conditions_blacklist, day, daily_weather_info):

@@ -48,9 +48,18 @@ def get_weather_info(zip_code):
                 daily_info[date_str]['min'] = min(daily_info[date_str]['min'], temp_min)
                 daily_info[date_str]['max'] = max(daily_info[date_str]['max'], temp_max)
                 daily_info[date_str]['conditions'].add(condition)
-        print(city)
+        #print(city)
         #print(daily_info)
+
+        for day in daily_info:
+            conditions = daily_info[day]['conditions']
+            min_temp = daily_info[day]['min']
+            max_temp = daily_info[day]['max']
+
+            #print(f'{day} | Min: {min_temp} | Max: {max_temp} | conditions {conditions} ')
+
         return daily_info
     else:
         print(f'Error: {r.status_code}')
 
+get_weather_info('08055')

@@ -249,7 +249,7 @@ class GolfApp:
             self.day_frame = tk.Frame(self.window_frame)
             self.day_frame.grid(column=day_frame_col_index, row=day_frame_row_index, pady=10,padx=10)
            
-            day_summary_text = f"{day['day']} | {day['low_temp']}°F - {day['high_temp']}°F | {day['condition']}"
+            day_summary_text = f"{day['day']} | {day['low_temp']}°F - {day['high_temp']}°F | {', '.join(day['condition'])}"
             self.new_day_label = tk.Label(self.day_frame, text=day_summary_text, font=day_summary_font)
             self.new_day_label.grid(column=0, columnspan=2, row=row_index)
             row_index = row_index + 1
