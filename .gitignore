@@ -1,2 +1,4 @@
 # Ignore PyCache
 __pycache__
+
+config.txt

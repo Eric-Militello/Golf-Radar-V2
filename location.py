@@ -1,7 +1,21 @@
 import requests
 from datetime import datetime
 
-API_key = 'b9d1b739b6f7ca724d497b532df3a988'
+# Read API key from config.txt file
+with open('config.txt', 'r') as file:
+    # Read the entire file
+    content = file.read()
+
+    # Use regular expressions to extract the API key
+    import re
+    match = re.search(r"API_Key='(.+)'", content)
+    
+    if match:
+        API_key = match.group(1)
+        print("API Key:", API_key)
+    else:
+        print("API key not found in the config.txt file.")
+
 
 def kelvin_to_fahrenheit(kelvin):
     return round((kelvin - 273.15) * 9/5 + 32, 1)
