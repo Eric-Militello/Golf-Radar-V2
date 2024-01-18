@@ -6,12 +6,12 @@ from datetime import datetime
 import re
 
 # URLs
-golf_base_url = "https://www.golfnow.com/tee-times/search#qc=GeoLocation&q={}&sortby=Facilities.Distance.0&view=Course&date={}&holes={}&radius={}&timemax={}&timemin={}&players={}&pricemax=10000&pricemin=0&promotedcampaignsonly=false&hotdealsonly=false&longitude=-74.8223&latitude=39.8637"
+golf_base_url = "https://www.golfnow.com/tee-times/search#qc=GeoLocation&q={}&sortby=Facilities.Distance.0&view=Course&date={}&holes={}&radius={}&timemax={}&timemin={}&players={}&pricemax=10000&pricemin=0&promotedcampaignsonly=false&hotdealsonly=false&longitude={}&latitude={}"
 
 
 def main(zip_code, range_value, early_time, late_time,min_temp, max_temp, conditions_blacklist, selected_players, selected_holes):
      # Call weather API
-     daily_weather_info = get_weather_info(zip_code)
+     daily_weather_info, lon, lat = get_weather_info(zip_code)
      valid_days = []
      valid_days_data = []
      for day in daily_weather_info:
@@ -26,11 +26,11 @@ def main(zip_code, range_value, early_time, late_time,min_temp, max_temp, condit
      for day in valid_days:
           search_url = build_search_url(zip_code, convert_day_format(day, '2024'), convert_hole_format(selected_holes), 
                                             convert_range_format(range_value), convert_late_time_format(late_time), 
-                                            convert_early_time_format(early_time), convert_selected_players(selected_players))
+                                            convert_early_time_format(early_time), convert_selected_players(selected_players), lon, lat)
           tee_time_info = scrape_tee_times(search_url)
 
           valid_days_data.append({
-               'day': day[0],
+               'day': format_date_for_gui(day[0]),
                'low_temp': day[1],
                'high_temp' : day[2],
                'condition' : day[3],
@@ -170,13 +170,32 @@ def convert_day_format(candidate_day, year='2024'):
 
 
 
-def build_search_url(zip_code, day, selected_holes, range_value, late_time, early_time, selected_players):
-      golf_url = golf_base_url.format(zip_code, day, selected_holes, range_value, late_time, early_time, selected_players,)
+def build_search_url(zip_code, day, selected_holes, range_value, late_time, early_time, selected_players, lon, lat):
+      golf_url = golf_base_url.format(zip_code, day, selected_holes, range_value, late_time, early_time, selected_players, lon, lat)
+      print(golf_url)
       return golf_url
 
 
 
 
+def get_day_suffix(day):
+    if 10 <= day % 100 <= 20:
+        suffix = 'th'
+    else:
+        suffix = {1: 'st', 2: 'nd', 3: 'rd'}.get(day % 10, 'th')
+    return suffix
+
+def format_date_for_gui(input_date):
+    # Convert input string to datetime object
+    date_object = datetime.strptime(input_date, "%Y-%m-%d")
+
+    # Get the day with suffix (1st, 2nd, 3rd, etc.)
+    day_with_suffix = f"{date_object.day}{get_day_suffix(date_object.day)}"
+
+    # Format the date as 'Mon DDth'
+    formatted_date = date_object.strftime("%b ") + day_with_suffix
+
+    return formatted_date
 
 
 

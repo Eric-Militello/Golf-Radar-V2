@@ -4,6 +4,7 @@ from main import main
 import webbrowser
 
 
+
 class GolfApp:
     def __init__(self):
         self.root = tk.Tk()
@@ -271,10 +272,11 @@ class GolfApp:
                 day_frame_row_index = day_frame_row_index + 1
             count = count + 1
 
-            
+
+
 
            
-            
+
 
 
     def show_courses(self, day):
@@ -291,3 +293,4 @@ class GolfApp:
 # Create an instance of GolfApp and run the GUI
 golf_app = GolfApp()
 golf_app.run()
+
