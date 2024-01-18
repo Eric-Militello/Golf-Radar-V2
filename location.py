@@ -12,9 +12,8 @@ with open('config.txt', 'r') as file:
     
     if match:
         API_key = match.group(1)
-        print("API Key:", API_key)
     else:
-        print("API key not found in the config.txt file.")
+        print("API key Error")
 
 
 def kelvin_to_fahrenheit(kelvin):

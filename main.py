@@ -177,7 +177,7 @@ def convert_day_format(candidate_day, year='2024'):
 # Build URL that matches the inputs passed in
 def build_search_url(zip_code, day, selected_holes, range_value, late_time, early_time, selected_players, lon, lat):
       golf_url = golf_base_url.format(zip_code, day, selected_holes, range_value, late_time, early_time, selected_players, lon, lat)
-      print(golf_url)
+      #print(golf_url)
       return golf_url
 
 def format_date_for_gui(input_date):
